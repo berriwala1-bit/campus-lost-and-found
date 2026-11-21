@@ -1,0 +1,97 @@
+<div class="page-container container">
+  <div class="form-wrapper">
+    <div class="top-nav">
+      <a routerLink="/reclamations" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        Retour
+      </a>
+    </div>
+
+    <div class="form-card">
+      <div class="form-header">
+        <h1 class="form-title">{{ isEditing ? 'Modifier ma réclamation' : 'Déposer une réclamation ou un signalement' }}</h1>
+        <p class="form-subtitle">{{ isEditing ? 'Mettez à jour le titre, la catégorie ou la description.' : 'Votre requête sera examinée par l’administration du campus' }}</p>
+      </div>
+
+      @if (errorMessage) {
+        <div class="alert alert-danger">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <span>{{ errorMessage }}</span>
+        </div>
+      }
+
+      <form (ngSubmit)="onSubmit()" class="main-form">
+        <div class="form-group">
+          <label for="titre" class="form-label">Titre de la réclamation *</label>
+          <input 
+            type="text" 
+            id="titre" 
+            [(ngModel)]="titre" 
+            name="titre" 
+            class="form-control" 
+            placeholder="Ex: Panne de climatisation et prises défectueuses en Amphi B" 
+            required />
+          @if (fieldErrors['titre']) {
+            <span class="form-error">{{ fieldErrors['titre'] }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="categorie" class="form-label">Catégorie du problème *</label>
+          <select id="categorie" [(ngModel)]="categorie" name="categorie" class="form-select" required>
+            <option value="" disabled>Sélectionnez la catégorie concernée...</option>
+            @for (cat of categories; track cat.value) {
+              <option [value]="cat.value">{{ cat.label }}</option>
+            }
+          </select>
+          @if (fieldErrors['categorie']) {
+            <span class="form-error">{{ fieldErrors['categorie'] }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="description" class="form-label">Description détaillée des faits *</label>
+          <textarea 
+            id="description" 
+            [(ngModel)]="description" 
+            name="description" 
+            rows="6" 
+            class="form-control" 
+            placeholder="Expliquez clairement le problème rencontré, la date/heure, les lieux concernés et l'impact..." 
+            required></textarea>
+          @if (fieldErrors['description']) {
+            <span class="form-error">{{ fieldErrors['description'] }}</span>
+          }
+        </div>
+
+        <!-- Pièce justificative facultative -->
+        <div class="form-group">
+          <label class="form-label">Pièce justificative ou photo (facultative)</label>
+          <div class="upload-zone">
+            @if (fileName) {
+              <div class="file-preview">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                <span class="file-name">{{ fileName }}</span>
+                <button type="button" class="btn btn-outline btn-sm" (click)="removeFile()">Retirer</button>
+              </div>
+            } @else {
+              <label class="upload-dropzone">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                <span class="dropzone-title">Sélectionner un fichier (photo ou document PDF)</span>
+                <span class="dropzone-hint">Formats acceptés : JPG, PNG, WEBP, PDF (Max: 5 Mo)</span>
+                <input type="file" (change)="onFileSelected($event)" accept="image/jpeg,image/png,image/webp,application/pdf" hidden />
+              </label>
+            }
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <a routerLink="/reclamations" class="btn btn-outline">Annuler</a>
+          <button type="submit" class="btn btn-primary btn-lg" [disabled]="isLoading">
+            {{ isLoading ? 'Enregistrement en cours...' : isEditing ? 'Enregistrer les modifications' : 'Soumettre la réclamation' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

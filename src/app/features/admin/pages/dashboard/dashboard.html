@@ -1,0 +1,353 @@
+<div class="admin-wrapper container">
+  <!-- Barre de navigation d'administration -->
+  <div class="admin-topbar">
+    <div class="admin-topbar-header">
+      <div class="admin-shield">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+      </div>
+      <div>
+        <h1 class="admin-title">Panneau d'Administration</h1>
+        <p class="admin-subtitle">Supervision globale, gestion des utilisateurs, modération et suivi en temps réel</p>
+      </div>
+    </div>
+
+    <nav class="admin-nav-tabs">
+      <a routerLink="/admin" class="admin-tab-btn active">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        Vue Générale & Statistiques
+      </a>
+      <a routerLink="/admin/utilisateurs" class="admin-tab-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        Gestion Utilisateurs
+      </a>
+      <a routerLink="/admin/objets" class="admin-tab-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        Gestion des Objets
+      </a>
+      <a routerLink="/admin/reclamations" class="admin-tab-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        Gestion Réclamations
+      </a>
+      <a routerLink="/admin/commentaires" class="admin-tab-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        Modération Commentaires
+      </a>
+    </nav>
+  </div>
+
+  @if (isLoading) {
+    <app-loading-spinner message="Calcul des statistiques réelles depuis MySQL..."></app-loading-spinner>
+  } @else if (errorMessage) {
+    <div class="alert alert-danger">{{ errorMessage }}</div>
+  } @else if (stats) {
+    <!-- Indicateurs calculés à partir des enregistrements MySQL -->
+    <div class="metrics-grid">
+      <!-- 1. Total Utilisateurs -->
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">1. Total Utilisateurs</span>
+          <span class="metric-badge-icon blue">👥</span>
+        </div>
+        <div class="metric-number">{{ stats.users.total }}</div>
+        <div class="metric-sub">Comptes enregistrés dans MySQL</div>
+      </div>
+
+      <!-- 2. Étudiants -->
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">2. Étudiants</span>
+          <span class="metric-badge-icon purple">🎓</span>
+        </div>
+        <div class="metric-number">{{ stats.users.etudiants }}</div>
+        <div class="metric-sub">{{ getPercentage(stats.users.etudiants, stats.users.total) }}% des utilisateurs</div>
+      </div>
+
+      <!-- 3. Enseignants -->
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">3. Enseignants</span>
+          <span class="metric-badge-icon indigo">👨‍🏫</span>
+        </div>
+        <div class="metric-number">{{ stats.users.enseignants }}</div>
+        <div class="metric-sub">{{ getPercentage(stats.users.enseignants, stats.users.total) }}% des utilisateurs</div>
+      </div>
+
+      <!-- 4. Personnels -->
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">4. Personnels</span>
+          <span class="metric-badge-icon teal">💼</span>
+        </div>
+        <div class="metric-number">{{ stats.users.personnels }}</div>
+        <div class="metric-sub">{{ getPercentage(stats.users.personnels, stats.users.total) }}% des utilisateurs</div>
+      </div>
+
+      <!-- 5. Administrateurs -->
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">5. Administrateurs</span>
+          <span class="metric-badge-icon indigo">🛡️</span>
+        </div>
+        <div class="metric-number">{{ stats.users.admins }}</div>
+        <div class="metric-sub">{{ getPercentage(stats.users.admins, stats.users.total) }}% des utilisateurs</div>
+      </div>
+
+      <!-- 6. Objets Trouvés -->
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">6. Objets Trouvés</span>
+          <span class="metric-badge-icon green">🔍</span>
+        </div>
+        <div class="metric-number">{{ stats.objets.trouves }}</div>
+        <div class="metric-sub">Annonces publiées</div>
+      </div>
+
+      <!-- 7. Objets Perdus actifs -->
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">7. Objets Perdus actifs</span>
+          <span class="metric-badge-icon orange">📢</span>
+        </div>
+        <div class="metric-number">{{ stats.objets.perdus_actifs }}</div>
+        <div class="metric-sub">Signalements actifs</div>
+      </div>
+
+      <!-- 8. Objets Récupérés -->
+      <div class="metric-card metric-highlight">
+        <div class="metric-header">
+          <span class="metric-title">8. Objets Récupérés</span>
+          <span class="metric-badge-icon success">🎉</span>
+        </div>
+        <div class="metric-number text-success">{{ stats.objets.recuperes }}</div>
+        <div class="metric-sub">Objets restitués avec succès</div>
+      </div>
+
+      <!-- 9. Nombre de Réclamations -->
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">9. Total Réclamations</span>
+          <span class="metric-badge-icon yellow">📋</span>
+        </div>
+        <div class="metric-number">{{ stats.reclamations.total }}</div>
+        <div class="metric-sub">Toutes catégories confondues</div>
+      </div>
+
+      <!-- 10. Réclamations en attente -->
+      <div class="metric-card" [class.metric-alert]="stats.reclamations.en_attente > 0">
+        <div class="metric-header">
+          <span class="metric-title">10. Réclamations en attente</span>
+          <span class="metric-badge-icon red">⏳</span>
+        </div>
+        <div class="metric-number" [class.text-danger]="stats.reclamations.en_attente > 0">
+          {{ stats.reclamations.en_attente }}
+        </div>
+        <div class="metric-sub">Nécessitent une réponse</div>
+      </div>
+
+    </div>
+
+    <!-- Graphiques et Répartitions Visuelles -->
+    <div class="charts-row">
+      <!-- Répartition des Objets -->
+      <div class="chart-card">
+        <h3>Répartition des Objets du Campus</h3>
+        <p class="chart-subtitle">Répartition par type et par statut des annonces</p>
+        
+        <div class="progress-bar-group">
+          <div class="progress-info">
+            <span>Trouvés ({{ stats.objets.trouves }})</span>
+            <span>{{ getPercentage(stats.objets.trouves, stats.objets.total) }}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill bg-primary" [style.width.%]="getPercentage(stats.objets.trouves, stats.objets.total)"></div>
+          </div>
+        </div>
+
+        <div class="progress-bar-group">
+          <div class="progress-info">
+            <span>Perdus ({{ stats.objets.perdus }})</span>
+            <span>{{ getPercentage(stats.objets.perdus, stats.objets.total) }}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill bg-warning" [style.width.%]="getPercentage(stats.objets.perdus, stats.objets.total)"></div>
+          </div>
+        </div>
+
+        <div class="cat-distribution">
+          <h4>Statut des annonces :</h4>
+        <div class="progress-bar-group">
+          <div class="progress-info">
+            <span>Actives ({{ stats.objets.actifs }})</span>
+            <span>{{ getPercentage(stats.objets.actifs, stats.objets.total) }}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill bg-primary" [style.width.%]="getPercentage(stats.objets.actifs, stats.objets.total)"></div>
+          </div>
+        </div>
+        <div class="progress-bar-group">
+          <div class="progress-info">
+            <span>En cours ({{ stats.objets.en_cours }})</span>
+            <span>{{ getPercentage(stats.objets.en_cours, stats.objets.total) }}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill bg-warning" [style.width.%]="getPercentage(stats.objets.en_cours, stats.objets.total)"></div>
+          </div>
+        </div>
+        <div class="progress-bar-group">
+          <div class="progress-info">
+            <span>Récupérés ({{ stats.objets.recuperes }})</span>
+            <span>{{ getPercentage(stats.objets.recuperes, stats.objets.total) }}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill bg-success" [style.width.%]="getPercentage(stats.objets.recuperes, stats.objets.total)"></div>
+          </div>
+        </div>
+        <div class="progress-bar-group">
+          <div class="progress-info">
+            <span>Clôturés ({{ stats.objets.clotures }})</span>
+            <span>{{ getPercentage(stats.objets.clotures, stats.objets.total) }}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill bg-secondary" [style.width.%]="getPercentage(stats.objets.clotures, stats.objets.total)"></div>
+          </div>
+        </div>
+        </div>
+
+        @if (stats.categories_objets.length > 0) {
+          <div class="cat-distribution">
+            <h4>Catégories les plus signalées :</h4>
+            <div class="tag-cloud">
+              @for (cat of stats.categories_objets; track cat.categorie) {
+                <span class="cat-cloud-item">
+                  {{ cat.categorie }} : <strong>{{ cat.count }}</strong>
+                </span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Statut des Réclamations -->
+      <div class="chart-card">
+        <h3>Traitement des Réclamations</h3>
+        <p class="chart-subtitle">Avancement de la prise en charge par l'administration</p>
+
+        <div class="progress-bar-group">
+          <div class="progress-info">
+            <span>En attente ({{ stats.reclamations.en_attente }})</span>
+            <span>{{ getPercentage(stats.reclamations.en_attente, stats.reclamations.total) }}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill bg-danger" [style.width.%]="getPercentage(stats.reclamations.en_attente, stats.reclamations.total)"></div>
+          </div>
+        </div>
+
+        <div class="progress-bar-group">
+          <div class="progress-info">
+            <span>En cours de traitement ({{ stats.reclamations.en_cours }})</span>
+            <span>{{ getPercentage(stats.reclamations.en_cours, stats.reclamations.total) }}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill bg-warning" [style.width.%]="getPercentage(stats.reclamations.en_cours, stats.reclamations.total)"></div>
+          </div>
+        </div>
+
+        <div class="progress-bar-group">
+          <div class="progress-info">
+            <span>Résolues ({{ stats.reclamations.resolues }})</span>
+            <span>{{ getPercentage(stats.reclamations.resolues, stats.reclamations.total) }}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill bg-success" [style.width.%]="getPercentage(stats.reclamations.resolues, stats.reclamations.total)"></div>
+          </div>
+        </div>
+
+        @if (stats.categories_reclamations.length > 0) {
+          <div class="cat-distribution">
+            <h4>Réclamations par thématique :</h4>
+            <div class="tag-cloud">
+              @for (cat of stats.categories_reclamations; track cat.categorie) {
+                <span class="cat-cloud-item">
+                  {{ cat.categorie }} : <strong>{{ cat.count }}</strong>
+                </span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Activité Récente (Tables) -->
+    <div class="recent-tables-grid">
+      <!-- Objets Récents -->
+      <div class="table-card">
+        <div class="table-card-header">
+          <h3>Derniers objets publiés</h3>
+          <a routerLink="/admin/objets" class="link-all">Voir tout &rarr;</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Objet</th>
+                <th>Type</th>
+                <th>Auteur</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (obj of stats.recent_objets; track obj.id) {
+                <tr>
+                  <td><strong>{{ obj.titre }}</strong></td>
+                  <td><app-status-badge [status]="obj.type" type="type"></app-status-badge></td>
+                  <td>{{ obj.prenom }} {{ obj.nom }}</td>
+                  <td><app-status-badge [status]="obj.statut"></app-status-badge></td>
+                </tr>
+              }
+              @if (stats.recent_objets.length === 0) {
+                <tr>
+                  <td colspan="4" class="text-center text-muted">Aucun objet publié.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Réclamations Récentes -->
+      <div class="table-card">
+        <div class="table-card-header">
+          <h3>Dernières réclamations déposées</h3>
+          <a routerLink="/admin/reclamations" class="link-all">Voir tout &rarr;</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Titre</th>
+                <th>Thématique</th>
+                <th>Auteur</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (rec of stats.recent_reclamations; track rec.id) {
+                <tr>
+                  <td><strong>{{ rec.titre }}</strong></td>
+                  <td><span class="cat-pill-sm">{{ rec.categorie }}</span></td>
+                  <td>{{ rec.prenom }} {{ rec.nom }}</td>
+                  <td><app-status-badge [status]="rec.statut"></app-status-badge></td>
+                </tr>
+              }
+              @if (stats.recent_reclamations.length === 0) {
+                <tr>
+                  <td colspan="4" class="text-center text-muted">Aucune réclamation.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+</div>

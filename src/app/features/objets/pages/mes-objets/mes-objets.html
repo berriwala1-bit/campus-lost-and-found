@@ -1,0 +1,92 @@
+<div class="page-container container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Mes Annonces Publiées</h1>
+      <p class="page-subtitle">Gérez et mettez à jour vos annonces d'objets perdus ou trouvés.</p>
+    </div>
+    <a routerLink="/objets/publier" class="btn btn-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      Nouvelle annonce
+    </a>
+  </div>
+
+  @if (errorMessage) {
+    <div class="alert alert-danger">{{ errorMessage }}</div>
+  }
+
+  @if (isLoading) {
+    <app-loading-spinner message="Chargement de vos annonces..."></app-loading-spinner>
+  } @else if (errorMessage) {
+    <div class="alert alert-danger">{{ errorMessage }}</div>
+  } @else if (objets.length === 0) {
+    <div class="empty-state">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+      <h3>Vous n'avez pas encore publié d'annonce</h3>
+      <p>Vous avez trouvé ou perdu un objet sur le campus ? Déclarez-le dès maintenant.</p>
+      <a routerLink="/objets/publier" class="btn btn-primary btn-sm">Publier une annonce</a>
+    </div>
+  } @else {
+    <div class="my-objects-grid">
+      @for (objet of objets; track objet.partage_id ? 'partage-' + objet.partage_id : 'objet-' + objet.id) {
+        <div class="my-object-card" [class.recovered]="objet.statut === 'recupere'" [class.shared]="objet.est_partage">
+          <div class="card-thumb">
+            @if (objet.photo) {
+              <img [src]="getPhotoUrl(objet.photo)" [alt]="objet.titre" />
+            } @else {
+              <div class="thumb-placeholder">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              </div>
+            }
+          </div>
+
+          <div class="card-info">
+            <div class="badges-row">
+              <app-status-badge [status]="objet.type" type="type"></app-status-badge>
+              <app-status-badge [status]="objet.statut" type="status"></app-status-badge>
+              <span class="cat-pill">{{ getCategorieLabel(objet.categorie) }}</span>
+              @if (objet.est_partage) {
+                <span class="shared-pill">Partagé par vous</span>
+              }
+            </div>
+
+            <h3 class="obj-title">{{ objet.titre }}</h3>
+
+            <p class="obj-desc">{{ objet.description }}</p>
+            <p class="obj-meta"><strong>Contact :</strong> {{ objet.contact }}</p>
+
+            <div class="obj-meta">
+              <span>📍 {{ objet.lieu }}</span>
+              <span>📅 {{ objet.date_evenement | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+
+          <div class="card-actions-col">
+            @if (objet.est_partage) {
+              <button (click)="retirerPartage(objet)" class="btn btn-danger btn-sm" [disabled]="partageEnCours === objet.id">
+                {{ partageEnCours === objet.id ? '...' : 'Retirer le partage' }}
+              </button>
+            } @else {
+              <a [routerLink]="['/objets/modifier', objet.id]" class="btn btn-outline btn-sm">
+                Modifier
+              </a>
+              <button (click)="confirmDelete(objet.id)" class="btn btn-danger btn-sm">
+                Supprimer
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (showDeleteDialog) {
+    <app-confirmation-dialog
+      title="Supprimer mon annonce"
+      message="Êtes-vous sûr de vouloir supprimer définitivement cette annonce ?"
+      confirmText="Supprimer"
+      [isDanger]="true"
+      (confirmed)="onDeleteConfirmed()"
+      (cancelled)="showDeleteDialog = false">
+    </app-confirmation-dialog>
+  }
+</div>

@@ -1,0 +1,130 @@
+<div class="home-page">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-container">
+      <span class="hero-badge">Plateforme Officielle Universitaire</span>
+      <h1 class="hero-title">
+        Retrouvez ou signalez vos <span class="gradient-text">objets perdus</span> sur le campus
+      </h1>
+      <p class="hero-subtitle">
+        Campus Lost & Found centralise les déclarations d'objets égarés et permet de déposer des réclamations à l'administration.
+      </p>
+
+      <!-- Quick Search Bar -->
+      <form class="hero-search-box" (ngSubmit)="onSearch()">
+        <div class="search-input-group">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            name="searchQuery" 
+            placeholder="Ex: Clés, MacBook gris, Carte d'étudiant, Sac à dos..." 
+            class="search-input" />
+        </div>
+        <button type="submit" class="btn btn-primary search-btn">Rechercher</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Quick Action Cards -->
+  <section class="actions-section">
+    <div class="container">
+      <div class="actions-grid">
+        <div class="action-card action-card-found">
+          <div class="action-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+          </div>
+          <h3>J'ai trouvé un objet</h3>
+          <p>Vous avez ramassé un objet dans les amphis, la bibliothèque ou les couloirs ? Déclarez-le en 2 minutes.</p>
+          <a routerLink="/objets/publier" [queryParams]="{ type: 'trouve' }" class="action-link">
+            Déclarer un objet trouvé &rarr;
+          </a>
+        </div>
+
+        <div class="action-card action-card-lost">
+          <div class="action-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
+          <h3>J'ai perdu un objet</h3>
+          <p>Consultez la liste des objets trouvés ou publiez une annonce de perte pour alerter la communauté du campus.</p>
+          <a routerLink="/objets/publier" [queryParams]="{ type: 'perdu' }" class="action-link">
+            Signaler un objet perdu &rarr;
+          </a>
+        </div>
+
+        <div class="action-card action-card-reclamation">
+          <div class="action-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          </div>
+          <h3>Déposer une réclamation</h3>
+          <p>Décrivez un problème du campus et suivez la réponse de l'administration depuis votre espace personnel.</p>
+          <a routerLink="/reclamations/publier" class="action-link">
+            Créer une réclamation &rarr;
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recent Objects Section -->
+  <section class="recent-section">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Dernières publications actives</h2>
+          <p class="section-subtitle">Objets récemment signalés ou perdus sur les différents campus</p>
+        </div>
+        <a routerLink="/objets" class="btn btn-outline btn-sm">Voir toutes les annonces &rarr;</a>
+      </div>
+
+      @if (loadError) {
+        <div class="alert alert-danger">{{ errorMessage }}</div>
+      } @else if (recentObjets.length > 0) {
+        <div class="objects-grid">
+          @for (objet of recentObjets; track objet.partage_id ? 'partage-' + objet.partage_id : 'objet-' + objet.id) {
+            <app-object-card [objet]="objet" (partageChange)="loadRecentObjets()"></app-object-card>
+          }
+        </div>
+      } @else if (isLoading) {
+        <app-loading-spinner message="Chargement des annonces récentes..."></app-loading-spinner>
+      } @else {
+        <div class="empty-state">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+          <h3>Aucune annonce active pour le moment</h3>
+          <p>Soyez le premier à publier un objet trouvé ou perdu sur le campus.</p>
+          <a routerLink="/objets/publier" class="btn btn-primary btn-sm">Publier la première annonce</a>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="how-section">
+    <div class="container">
+      <div class="how-header">
+        <h2 class="section-title">Comment fonctionne Campus Lost & Found ?</h2>
+        <p class="section-subtitle">Signalez un objet ou contactez l'administration en quelques étapes.</p>
+      </div>
+
+      <div class="how-grid">
+        <div class="how-card">
+          <div class="how-number">1</div>
+          <h3>Signalez un objet</h3>
+          <p>Publiez une annonce pour un objet perdu ou trouvé avec sa description et le lieu concerné.</p>
+        </div>
+
+        <div class="how-card">
+          <div class="how-number">2</div>
+          <h3>Gérez vos publications</h3>
+          <p>Retrouvez vos annonces dans votre espace personnel et tenez-les à jour.</p>
+        </div>
+
+        <div class="how-card">
+          <div class="how-number">3</div>
+          <h3>Suivez vos réclamations</h3>
+          <p>Écrivez à l'administration et consultez la réponse depuis votre espace personnel.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

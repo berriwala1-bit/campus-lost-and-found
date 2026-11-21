@@ -1,0 +1,132 @@
+<div class="page-container container">
+  <!-- En-tête de page -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">
+        @if (selectedType === 'trouve') {
+          Objets Trouvés sur le Campus
+        } @else if (selectedType === 'perdu') {
+          Objets Perdus par la Communauté
+        } @else {
+          Toutes les Annonces Objets
+        }
+      </h1>
+      <p class="page-subtitle">
+        Consultez les déclarations, effectuez une recherche ou signalez un objet.
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <a routerLink="/objets/publier" [queryParams]="{ type: selectedType || 'trouve' }" class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        Publier une annonce
+      </a>
+    </div>
+  </div>
+
+  <!-- Barre d'onglets Type d'annonce -->
+  <div class="type-tabs">
+    <button 
+      type="button" 
+      class="tab-btn tab-trouve" 
+      [class.active]="selectedType === 'trouve'" 
+      (click)="setTypeFilter('trouve')">
+      <span class="tab-indicator trouve"></span>
+      Objets Trouvés
+    </button>
+    <button 
+      type="button" 
+      class="tab-btn tab-perdu" 
+      [class.active]="selectedType === 'perdu'" 
+      (click)="setTypeFilter('perdu')">
+      <span class="tab-indicator perdu"></span>
+      Objets Perdus
+    </button>
+  </div>
+
+  <!-- Zone de recherche et filtres -->
+  <div class="filters-card">
+    <div class="filters-grid">
+      <!-- Recherche texte -->
+      <div class="filter-group flex-2">
+        <label class="form-label">Recherche par mot-clé</label>
+        <div class="input-with-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            (ngModelChange)="applySearchFilters()" 
+            class="form-control" 
+            placeholder="Nom, description, lieu..." />
+        </div>
+      </div>
+
+      <!-- Filtre Catégorie -->
+      <div class="filter-group">
+        <label class="form-label">Catégorie</label>
+        <select [(ngModel)]="selectedCategory" (ngModelChange)="applyFilters()" class="form-select">
+          <option value="all">Toutes les catégories</option>
+          @for (cat of categories.slice(1); track cat.value) {
+            <option [value]="cat.value">{{ cat.label }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Filtre Date -->
+      <div class="filter-group">
+        <label class="form-label">Date</label>
+        <input 
+          type="date" 
+          [(ngModel)]="selectedDate" 
+          (ngModelChange)="applyFilters()" 
+          class="form-control" />
+      </div>
+
+      <!-- Filtre Statut -->
+      <div class="filter-group">
+        <label class="form-label">Statut</label>
+        <select [(ngModel)]="selectedStatut" (ngModelChange)="applyFilters()" class="form-select">
+          <option value="all">Toutes les annonces</option>
+          <option value="actif">Actives</option>
+          <option value="en_cours">En cours</option>
+          <option value="recupere">Objets récupérés</option>
+          <option value="cloture">Clôturées</option>
+        </select>
+      </div>
+
+      <!-- Réinitialiser -->
+      <div class="filter-group action-col">
+        <label class="form-label">&nbsp;</label>
+        <button type="button" class="btn btn-outline btn-reset" (click)="resetFilters()" title="Réinitialiser les filtres">
+          Réinitialiser
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Résultat et Liste d'objets -->
+  <div class="results-header">
+    <span class="results-count">
+      <strong>{{ objets.length }}</strong> annonce(s) trouvée(s)
+    </span>
+  </div>
+
+  @if (loadError) {
+    <div class="alert alert-danger">{{ errorMessage }}</div>
+  } @else if (objets.length > 0) {
+    <div class="objects-grid">
+      @for (objet of objets; track objet.partage_id ? 'partage-' + objet.partage_id : 'objet-' + objet.id) {
+        <app-object-card [objet]="objet" (partageChange)="loadObjets()"></app-object-card>
+      }
+    </div>
+  } @else if (isLoading) {
+    <app-loading-spinner message="Chargement des annonces..."></app-loading-spinner>
+  } @else {
+    <div class="empty-state">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <h3>Aucune annonce ne correspond à votre recherche</h3>
+      <p>Modifiez vos critères de recherche ou réinitialisez les filtres.</p>
+      <button (click)="resetFilters()" class="btn btn-outline btn-sm">Réinitialiser les filtres</button>
+    </div>
+  }
+</div>

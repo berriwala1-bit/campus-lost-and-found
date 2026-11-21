@@ -1,0 +1,202 @@
+<div class="page-container container">
+  <div class="form-wrapper">
+    <div class="top-nav">
+      <a routerLink="/objets" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        Retour
+      </a>
+    </div>
+
+    <div class="form-card">
+      <div class="form-header">
+        <h1 class="form-title">{{ isEditMode ? 'Modifier l\'annonce' : 'Publier une nouvelle annonce' }}</h1>
+        <p class="form-subtitle">Remplissez les détails pour aider à retrouver ou restituer cet objet</p>
+      </div>
+
+      @if (errorMessage) {
+        <div class="alert alert-danger">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <span>{{ errorMessage }}</span>
+        </div>
+      }
+
+      <form (ngSubmit)="onSubmit()" class="main-form">
+        <!-- Type d'annonce : Trouvé ou Perdu -->
+        <div class="form-group">
+          <label class="form-label">Type d'annonce *</label>
+          <div class="type-toggle-group">
+            <button 
+              type="button" 
+              class="type-btn type-trouve" 
+              [class.active]="type === 'trouve'" 
+              (click)="type = 'trouve'">
+              <span class="icon">🔍</span>
+              <span>J'ai trouvé un objet</span>
+            </button>
+            <button 
+              type="button" 
+              class="type-btn type-perdu" 
+              [class.active]="type === 'perdu'" 
+              (click)="type = 'perdu'">
+              <span class="icon">📢</span>
+              <span>J'ai perdu un objet</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <!-- Nom / Titre -->
+          <div class="form-group col-2">
+            <label for="titre" class="form-label">Nom de l'objet *</label>
+            <input 
+              type="text" 
+              id="titre" 
+              [(ngModel)]="titre" 
+              name="titre" 
+              class="form-control" 
+              placeholder="Ex: Clés de voiture Peugeot avec porte-clé bleu" 
+              required />
+            @if (fieldErrors['titre']) {
+              <span class="form-error">{{ fieldErrors['titre'] }}</span>
+            }
+          </div>
+
+          <!-- Catégorie -->
+          <div class="form-group col-1">
+            <label for="categorie" class="form-label">Catégorie *</label>
+            <select id="categorie" [(ngModel)]="categorie" name="categorie" class="form-select" required>
+              <option value="" disabled>Sélectionnez...</option>
+              @for (cat of categories; track cat.value) {
+                <option [value]="cat.value">{{ cat.label }}</option>
+              }
+            </select>
+            @if (fieldErrors['categorie']) {
+              <span class="form-error">{{ fieldErrors['categorie'] }}</span>
+            }
+          </div>
+        </div>
+
+        <div class="form-row">
+          <!-- Lieu -->
+          <div class="form-group col">
+            <label for="lieu" class="form-label">{{ type === 'trouve' ? 'Lieu de découverte *' : 'Dernier lieu où l\'objet a été vu *' }}</label>
+            <input 
+              type="text" 
+              id="lieu" 
+              [(ngModel)]="lieu" 
+              name="lieu" 
+              class="form-control" 
+              placeholder="Ex: Bibliothèque universitaire, table 14" 
+              required />
+            @if (fieldErrors['lieu']) {
+              <span class="form-error">{{ fieldErrors['lieu'] }}</span>
+            }
+          </div>
+
+          <!-- Date -->
+          <div class="form-group col">
+            <label for="dateEvenement" class="form-label">{{ type === 'trouve' ? 'Date de découverte *' : 'Date de perte *' }}</label>
+            <input 
+              type="date" 
+              id="dateEvenement" 
+              [(ngModel)]="dateEvenement" 
+              name="dateEvenement" 
+              class="form-control" 
+              required />
+            @if (fieldErrors['date']) {
+              <span class="form-error">{{ fieldErrors['date'] }}</span>
+            }
+          </div>
+        </div>
+
+        <!-- Contact -->
+        <div class="form-group">
+          <label for="contact" class="form-label">Moyen de contact affiché aux utilisateurs *</label>
+          <input 
+            type="text" 
+            id="contact" 
+            [(ngModel)]="contact" 
+            name="contact" 
+            class="form-control" 
+            placeholder="Ex: 06 12 34 56 78 ou contact@etudiant.univ.fr" 
+            required />
+          @if (fieldErrors['contact']) {
+            <span class="form-error">{{ fieldErrors['contact'] }}</span>
+          }
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label for="description" class="form-label">Description détaillée *</label>
+          <textarea 
+            id="description" 
+            [(ngModel)]="description" 
+            name="description" 
+            rows="4" 
+            class="form-control" 
+            placeholder="Précisez la couleur, l'état, la marque ou les circonstances sans révéler d'éléments secrets nécessaires à la preuve..." 
+            required></textarea>
+          @if (fieldErrors['description']) {
+            <span class="form-error">{{ fieldErrors['description'] }}</span>
+          }
+        </div>
+
+        <!-- Photo Upload -->
+        <div class="form-group">
+          <label class="form-label">Photo de l'objet (Téléversement réel) {{ type === 'trouve' ? '*' : '(facultative)' }}</label>
+          <div class="upload-zone">
+            @if (imagePreviewUrl) {
+              <div class="preview-container">
+                <img [src]="imagePreviewUrl" alt="Aperçu" class="preview-img" />
+                <button type="button" class="btn btn-danger btn-sm remove-photo-btn" (click)="removeSelectedFile()">
+                  Supprimer la photo
+                </button>
+              </div>
+            } @else if (existingPhotoUrl) {
+              <div class="preview-container">
+                <img [src]="existingPhotoUrl" alt="Photo existante" class="preview-img" />
+                <p class="font-sm text-muted">Photo actuelle enregistrée.</p>
+                <label class="btn btn-outline btn-sm change-photo-btn">
+                  Changer de photo
+                  <input type="file" (change)="onFileSelected($event)" accept="image/jpeg,image/png,image/webp" hidden />
+                </label>
+              </div>
+            } @else {
+              <label class="upload-dropzone">
+                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                <span class="dropzone-title">Cliquez pour téléverser une photo</span>
+                <span class="dropzone-hint">Formats acceptés : JPG, PNG, WEBP (Max: 5 Mo)</span>
+                <input type="file" (change)="onFileSelected($event)" accept="image/jpeg,image/png,image/webp" hidden />
+              </label>
+            }
+          </div>
+        </div>
+
+        @if (isEditMode) {
+          <!-- Statut (en modification) -->
+          <div class="form-group">
+            <label for="statut" class="form-label">Statut de l'annonce</label>
+            <select id="statut" [(ngModel)]="statut" name="statut" class="form-select">
+              <option value="actif">Actif</option>
+              <option value="en_cours">En cours de récupération</option>
+              <option value="recupere">Récupéré</option>
+              <option value="cloture">Clôturé</option>
+            </select>
+          </div>
+        }
+
+        <!-- Boutons d'action -->
+        <div class="form-actions">
+          <a routerLink="/objets" class="btn btn-outline">Annuler</a>
+          <button type="submit" class="btn btn-primary btn-lg" [disabled]="isSubmitting">
+            @if (isSubmitting) {
+              <span>Enregistrement en cours...</span>
+            } @else {
+              <span>{{ isEditMode ? 'Mettre à jour l\'annonce' : 'Publier l\'annonce' }}</span>
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

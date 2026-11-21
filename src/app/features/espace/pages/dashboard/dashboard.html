@@ -1,0 +1,180 @@
+<div class="page-container container">
+  @if (!user) {
+    @if (isLoading) {
+      <app-loading-spinner message="Chargement de votre espace personnel..."></app-loading-spinner>
+    } @else {
+      <div class="alert alert-danger">
+        {{ errorMessage || 'Impossible de charger votre profil.' }}
+        <a routerLink="/connexion">Reconnectez-vous</a>
+      </div>
+    }
+  } @else {
+    @if (errorMessage) {
+      <div class="alert alert-danger">{{ errorMessage }}</div>
+    }
+    <!-- En-tête profil utilisateur -->
+    <div class="profile-hero">
+      <div class="hero-avatar">
+        {{ user.prenom?.charAt(0) }}{{ user.nom?.charAt(0) }}
+      </div>
+      <div class="hero-details">
+        <div class="hero-name-row">
+          <h1 class="hero-name">{{ user.prenom }} {{ user.nom }}</h1>
+          <app-status-badge [status]="user.role" type="role"></app-status-badge>
+        </div>
+        <p class="hero-email">{{ user.email }} &bull; {{ getRoleLabel(user.role) }}</p>
+        <span class="hero-date">Membre actif depuis le {{ user.created_at | date:'MMMM yyyy' }}</span>
+      </div>
+    </div>
+
+    <!-- Navigation interne de l'Espace -->
+    <div class="espace-tabs">
+      <button 
+        type="button" 
+        class="espace-tab-btn" 
+        [class.active]="activeTab === 'overview'" 
+        (click)="activeTab = 'overview'">
+        Vue d'ensemble
+      </button>
+      <button 
+        type="button" 
+        class="espace-tab-btn" 
+        [class.active]="activeTab === 'profile'" 
+        (click)="activeTab = 'profile'">
+        Mon Profil & Sécurité
+      </button>
+      <button 
+        type="button" 
+        class="espace-tab-btn" 
+        [class.active]="activeTab === 'publications'" 
+        (click)="activeTab = 'publications'">
+        Mes publications
+      </button>
+      <button 
+        type="button" 
+        class="espace-tab-btn" 
+        [class.active]="activeTab === 'reclamations'" 
+        (click)="activeTab = 'reclamations'">
+        Mes réclamations
+      </button>
+    </div>
+
+    <!-- Onglet 1 : Vue d'ensemble -->
+    @if (activeTab === 'overview') {
+      <div class="overview-section">
+        <!-- Cartes statistiques réelles -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon icon-objets">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+            <div class="stat-body">
+              <span class="stat-value">{{ stats.objets_publies }}</span>
+              <span class="stat-label">Objets publiés</span>
+            </div>
+            <a routerLink="/objets" class="stat-link">Voir les objets &rarr;</a>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon icon-reclamations">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <div class="stat-body">
+              <span class="stat-value">{{ stats.reclamations_creees }}</span>
+              <span class="stat-label">Réclamations déposées</span>
+            </div>
+            <button type="button" class="stat-link-btn" (click)="activeTab = 'reclamations'">Mes réclamations &rarr;</button>
+          </div>
+
+        </div>
+
+        <!-- Raccourcis rapides -->
+        <div class="quick-actions-card">
+          <h2>Actions rapides</h2>
+          <div class="quick-btns">
+            <a routerLink="/objets/publier" [queryParams]="{ type: 'trouve' }" class="btn btn-primary">
+              + J'ai trouvé un objet
+            </a>
+            <a routerLink="/objets/publier" [queryParams]="{ type: 'perdu' }" class="btn btn-secondary">
+              + J'ai perdu un objet
+            </a>
+            <button type="button" class="btn btn-outline" (click)="activeTab = 'publications'">
+              Gérer mes publications
+            </button>
+            <a routerLink="/reclamations/publier" class="btn btn-outline">
+              Déposer une réclamation
+            </a>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Onglet Profil & Sécurité -->
+    @if (activeTab === 'profile') {
+      <div class="profile-section">
+        <div class="form-card profile-form-card">
+          <h2>Modifier mes informations</h2>
+          <p class="form-hint">Vous pouvez modifier vos coordonnées et mettre à jour votre mot de passe.</p>
+
+          @if (profileSuccessMessage) {
+            <div class="alert alert-success">{{ profileSuccessMessage }}</div>
+          }
+          @if (profileErrorMessage) {
+            <div class="alert alert-danger">{{ profileErrorMessage }}</div>
+          }
+
+          <form (ngSubmit)="onSaveProfile()">
+            <div class="form-row">
+              <div class="form-group col">
+                <label class="form-label">Prénom</label>
+                <input type="text" [(ngModel)]="prenom" name="prenom" class="form-control" required />
+              </div>
+              <div class="form-group col">
+                <label class="form-label">Nom</label>
+                <input type="text" [(ngModel)]="nom" name="nom" class="form-control" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Adresse email (Non modifiable)</label>
+              <input type="email" [value]="user.email" disabled class="form-control disabled-input" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Numéro de téléphone</label>
+              <input type="tel" [(ngModel)]="telephone" name="telephone" class="form-control" placeholder="06 12 34 56 78" />
+            </div>
+
+            <div class="section-divider"></div>
+            <h3>Changer de mot de passe (facultatif)</h3>
+
+            <div class="form-row">
+              <div class="form-group col">
+                <label class="form-label">Mot de passe actuel</label>
+                <input type="password" [(ngModel)]="currentPassword" name="currentPassword" class="form-control" placeholder="••••••••" />
+              </div>
+              <div class="form-group col">
+                <label class="form-label">Nouveau mot de passe</label>
+                <input type="password" [(ngModel)]="newPassword" name="newPassword" class="form-control" placeholder="Au moins 6 caractères" />
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" [disabled]="isSavingProfile">
+                {{ isSavingProfile ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    }
+
+    @if (activeTab === 'publications') {
+      <app-mes-objets></app-mes-objets>
+    }
+
+    @if (activeTab === 'reclamations') {
+      <app-mes-reclamations></app-mes-reclamations>
+    }
+  }
+</div>

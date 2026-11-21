@@ -1,0 +1,213 @@
+<div class="admin-wrapper container">
+  <!-- Barre de navigation d'administration -->
+  <div class="admin-topbar">
+    <div class="admin-topbar-header">
+      <div class="admin-shield">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+      </div>
+      <div>
+        <h1 class="admin-title">Gestion des Utilisateurs</h1>
+        <p class="admin-subtitle">Consultez, modifiez les profils et gérez les accès des comptes du campus</p>
+      </div>
+    </div>
+
+    <nav class="admin-nav-tabs">
+      <a routerLink="/admin" class="admin-tab-btn">Vue Générale & Statistiques</a>
+      <a routerLink="/admin/utilisateurs" class="admin-tab-btn active">Gestion Utilisateurs</a>
+      <a routerLink="/admin/objets" class="admin-tab-btn">Gestion des Objets</a>
+      <a routerLink="/admin/reclamations" class="admin-tab-btn">Gestion Réclamations</a>
+      <a routerLink="/admin/commentaires" class="admin-tab-btn">Modération Commentaires</a>
+    </nav>
+  </div>
+
+  <div class="table-header-row"><button class="btn btn-primary" (click)="openCreateModal()">Créer un utilisateur</button></div>
+  @if (errorMessage) { <div class="alert alert-danger" role="alert">{{ errorMessage }}</div> }
+  @if (successMessage) { <div class="alert alert-success" role="status">{{ successMessage }}</div> }
+  <!-- Filtres de recherche -->
+  <div class="filters-card">
+    <div class="filters-grid">
+      <div class="filter-group flex-2">
+        <label class="form-label">Rechercher</label>
+        <div class="input-with-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            (ngModelChange)="applyFilters()" 
+            class="form-control" 
+            placeholder="Nom, prénom, email..." />
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label class="form-label">Rôle / Profil</label>
+        <select [(ngModel)]="selectedRole" (ngModelChange)="applyFilters()" class="form-select">
+          <option value="all">Tous les rôles</option>
+          <option value="etudiant">Étudiant</option>
+          <option value="enseignant">Enseignant</option>
+          <option value="personnel">Personnel</option>
+          <option value="admin">Administrateur</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="form-label">Statut</label>
+        <select [(ngModel)]="selectedStatut" (ngModelChange)="applyFilters()" class="form-select">
+          <option value="all">Tous les statuts</option>
+          <option value="actif">Actif</option>
+          <option value="inactif">Désactivé</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau des utilisateurs -->
+  <div class="table-card">
+    <div class="table-header-row">
+      <span class="count-tag"><strong>{{ users.length }}</strong> utilisateur(s) trouvé(s)</span>
+    </div>
+
+    @if (isLoading) {
+      <app-loading-spinner message="Chargement des utilisateurs..."></app-loading-spinner>
+    } @else if (errorMessage) {
+      <div class="empty-state">{{ errorMessage }}</div>
+    } @else if (users.length === 0) {
+      <div class="empty-state">Aucun utilisateur ne correspond aux filtres.</div>
+    } @else {
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Utilisateur</th>
+              <th>Email</th>
+              <th>Téléphone</th>
+              <th>Rôle</th>
+              <th>Statut</th>
+              <th>Inscrit le</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (u of users; track u.id) {
+              <tr>
+                <td>#{{ u.id }}</td>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-avatar-sm">{{ u.prenom.charAt(0) }}{{ u.nom.charAt(0) }}</div>
+                    <strong>{{ u.prenom }} {{ u.nom }}</strong>
+                  </div>
+                </td>
+                <td>{{ u.email }}</td>
+                <td>{{ u.telephone || '-' }}</td>
+                <td><app-status-badge [status]="u.role" type="role"></app-status-badge></td>
+                <td><app-status-badge [status]="u.statut"></app-status-badge></td>
+                <td>{{ u.created_at | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <div class="actions-cell">
+                    <button (click)="openEditModal(u)" class="btn btn-outline btn-sm" title="Modifier">
+                      Modifier
+                    </button>
+                    @if (u.role !== 'admin') {
+                      <button 
+                        (click)="toggleUserStatut(u)" 
+                        class="btn btn-sm" 
+                        [class.btn-secondary]="u.statut === 'inactif'" 
+                        [class.btn-outline]="u.statut === 'actif'"
+                        [title]="u.statut === 'actif' ? 'Désactiver' : 'Activer'">
+                        {{ u.statut === 'actif' ? 'Désactiver' : 'Activer' }}
+                      </button>
+                      <button (click)="confirmDelete(u)" class="btn btn-danger btn-sm" title="Supprimer">
+                        Supprimer
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <!-- Modal Édition Utilisateur -->
+  @if (showEditModal) {
+    <div class="modal-backdrop" (click)="closeEditModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>{{ isCreating ? 'Créer un utilisateur' : 'Modifier l’utilisateur #' + selectedUser?.id }}</h3>
+          <button (click)="closeEditModal()" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          @if (modalError) {
+            <div class="alert alert-danger">{{ modalError }}</div>
+          }
+
+          <div class="form-row">
+            <div class="form-group col">
+              <label class="form-label">Prénom</label>
+              <input type="text" [(ngModel)]="editPrenom" class="form-control" required />
+            </div>
+            <div class="form-group col">
+              <label class="form-label">Nom</label>
+              <input type="text" [(ngModel)]="editNom" class="form-control" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Adresse e-mail *</label>
+            <input type="email" [(ngModel)]="editEmail" class="form-control" required />
+          </div>
+          @if (isCreating) {
+            <div class="form-group">
+              <label class="form-label">Mot de passe (8 caractères minimum) *</label>
+              <input type="password" [(ngModel)]="editPassword" class="form-control" minlength="8" required />
+            </div>
+          }
+          <div class="form-group">
+            <label class="form-label">Téléphone</label>
+            <input type="tel" [(ngModel)]="editTelephone" class="form-control" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col">
+              <label class="form-label">Rôle</label>
+              <select [(ngModel)]="editRole" class="form-select">
+                <option value="etudiant">Étudiant</option>
+                <option value="enseignant">Enseignant</option>
+                <option value="personnel">Personnel</option>
+                <option value="admin">Administrateur</option>
+              </select>
+            </div>
+            <div class="form-group col">
+              <label class="form-label">Statut du compte</label>
+              <select [(ngModel)]="editStatut" class="form-select">
+                <option value="actif">Actif</option>
+                <option value="inactif">Désactivé</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-sm" (click)="closeEditModal()">Annuler</button>
+          <button type="button" class="btn btn-primary btn-sm" (click)="saveUser()" [disabled]="isSaving || !editNom.trim() || !editPrenom.trim() || !editEmail.trim() || (isCreating && editPassword.length < 8)">
+            {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Dialogue Suppression -->
+  @if (showDeleteDialog) {
+    <app-confirmation-dialog
+      title="Supprimer l'utilisateur"
+      [message]="'Êtes-vous sûr de vouloir supprimer définitivement le compte de ' + userToDelete?.prenom + ' ' + userToDelete?.nom + ' et toutes ses publications ?'"
+      confirmText="Supprimer définitivement"
+      [isDanger]="true"
+      (confirmed)="onDeleteConfirmed()"
+      (cancelled)="showDeleteDialog = false">
+    </app-confirmation-dialog>
+  }
+</div>

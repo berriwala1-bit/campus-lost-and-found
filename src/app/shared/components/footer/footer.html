@@ -1,0 +1,57 @@
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-grid">
+      <div class="footer-brand-col">
+        <div class="footer-logo">
+          <div class="footer-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
+          <span>Campus Lost & Found</span>
+        </div>
+        <p class="footer-desc">
+          Plateforme collaborative universitaire pour signaler les objets perdus ou trouvés et faciliter leur restitution.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Navigation</h4>
+        <ul>
+          <li><a routerLink="/">Accueil</a></li>
+          <li><a routerLink="/objets" [queryParams]="{ type: 'trouve' }">Objets Trouvés</a></li>
+          <li><a routerLink="/objets" [queryParams]="{ type: 'perdu' }">Objets Perdus</a></li>
+          <li><a routerLink="/reclamations/publier">Déposer une réclamation</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Mon Compte</h4>
+        <ul>
+          <li><a routerLink="/connexion">Connexion</a></li>
+          <li><a routerLink="/inscription">Créer un compte</a></li>
+          <li><a routerLink="/espace">Mon Profil</a></li>
+          <li><a routerLink="/objets/publier">Publier une annonce</a></li>
+          <li><a routerLink="/reclamations/mes-reclamations">Mes réclamations</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Campus & Sécurité</h4>
+        <p class="footer-contact-text">
+          Besoin d'aide d'urgence pour un objet de valeur ? Contactez l'accueil général du campus ou le service de sécurité.
+        </p>
+        <div class="footer-badge">
+          <span>Support Campus 24/7</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; {{ currentYear }} Campus Lost & Found. Tous droits réservés.</p>
+      <div class="footer-bottom-links">
+        <span>Université Digitale</span>
+        <span>&bull;</span>
+        <span>Version 1.0</span>
+      </div>
+    </div>
+  </div>
+</footer>

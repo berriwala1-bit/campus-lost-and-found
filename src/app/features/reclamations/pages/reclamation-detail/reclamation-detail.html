@@ -1,0 +1,166 @@
+@if (!reclamation && errorMessage) {
+  <div class="page-container container"><div class="alert alert-danger">{{ errorMessage }}</div></div>
+} @else if (!reclamation && isLoading) {
+  <app-loading-spinner message="Chargement des détails de la réclamation..."></app-loading-spinner>
+} @else if (!reclamation) {
+  <div class="page-container container"><div class="alert alert-danger">Réclamation introuvable.</div></div>
+}
+
+@if (reclamation) {
+  <div class="page-container container">
+    <div class="top-nav">
+      <a routerLink="/reclamations" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        Retour aux réclamations
+      </a>
+
+      @if (isOwner || isAdmin) {
+        <button (click)="confirmDelete()" class="btn btn-danger btn-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          Supprimer
+        </button>
+      }
+    </div>
+
+    <div class="detail-wrapper">
+      <!-- Fiche principale de réclamation -->
+      <div class="complaint-main-card">
+        <div class="header-badges">
+          <span class="category-tag">{{ getCategoryLabel(reclamation.categorie) }}</span>
+          <app-status-badge [status]="reclamation.statut"></app-status-badge>
+          <span class="date-badge">Déposée le {{ reclamation.created_at | date:'dd MMMM yyyy à HH:mm' }}</span>
+        </div>
+
+        <h1 class="complaint-title">{{ reclamation.titre }}</h1>
+
+        <!-- Auteur de la réclamation -->
+        <div class="author-banner">
+          <div class="author-avatar">{{ reclamation.auteur_prenom?.charAt(0) || 'U' }}</div>
+          <div class="author-info">
+            <span class="author-name">{{ reclamation.auteur_prenom }} {{ reclamation.auteur_nom }}</span>
+            <span class="author-role">{{ reclamation.auteur_role }}</span>
+          </div>
+        </div>
+
+        <div class="complaint-body">
+          <h3>Exposé de la réclamation</h3>
+          <p class="description-text">{{ reclamation.description }}</p>
+
+          <!-- Pièce jointe si existante -->
+          @if (reclamation.piece_jointe) {
+            <div class="attachment-box">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+              <div class="attachment-info">
+                <span class="attachment-title">Pièce justificative téléversée</span>
+                <button type="button" class="attachment-link" (click)="downloadPieceJointe()" [disabled]="isDownloadingPieceJointe">
+                  {{ isDownloadingPieceJointe ? 'Téléchargement...' : 'Télécharger la pièce jointe' }} &rarr;
+                </button>
+                @if (pieceJointeError) {
+                  <span class="text-danger">{{ pieceJointeError }}</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Réponse officielle de l'administration -->
+        @if (reclamation.reponse_officielle) {
+          <div class="official-response-card">
+            <div class="official-header">
+              <div class="official-badge-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </div>
+              <div>
+                <h4>Réponse Officielle de l'Administration</h4>
+                @if (reclamation.date_reponse) {
+                  <span class="response-date">Répondu le {{ reclamation.date_reponse | date:'dd/MM/yyyy à HH:mm' }}</span>
+                }
+              </div>
+            </div>
+            <div class="official-content">
+              <p>{{ reclamation.reponse_officielle }}</p>
+            </div>
+          </div>
+        }
+
+        <!-- Barre de soutien -->
+        <div class="support-action-bar">
+          <div class="support-count-info">
+            <strong>{{ reclamation.soutiens_count }}</strong> personne(s) soutienne(nt) cette réclamation
+          </div>
+
+          <button 
+            type="button" 
+            class="btn btn-lg support-toggle-btn" 
+            [class.btn-danger]="reclamation.user_a_soutenu"
+            [class.btn-outline]="!reclamation.user_a_soutenu"
+            (click)="onToggleSupport()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" [attr.fill]="reclamation.user_a_soutenu ? '#ffffff' : 'none'" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+            <span>{{ reclamation.user_a_soutenu ? 'Je retire mon soutien' : 'Soutenir cette réclamation (+1)' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Commentaires et Discussions -->
+      <div class="comments-card">
+        <div class="comments-header">
+          <h2>Discussions & Témoignages ({{ commentaires.length }})</h2>
+          <p>Les membres du campus peuvent échanger et apporter des témoignages sur ce problème.</p>
+        </div>
+
+        @if (authService.isLoggedIn()) {
+          <form (ngSubmit)="onPostComment()" class="comment-form">
+            <textarea 
+              [(ngModel)]="nouveauCommentaire" 
+              name="nouveauCommentaire" 
+              rows="3" 
+              placeholder="Apportez votre témoignage ou votre précision..." 
+              class="form-control" 
+              required></textarea>
+            <div class="form-submit-row">
+              <button type="submit" class="btn btn-primary btn-sm" [disabled]="isSubmittingComment || !nouveauCommentaire.trim()">
+                {{ isSubmittingComment ? 'Publication...' : 'Publier' }}
+              </button>
+            </div>
+          </form>
+        } @else {
+          <div class="login-prompt">
+            <p>Connectez-vous pour participer à la discussion.</p>
+            <a routerLink="/connexion" class="btn btn-outline btn-sm">Se connecter</a>
+          </div>
+        }
+
+        <div class="comments-list">
+          @if (commentaires.length === 0) {
+            <p class="no-comments">Aucun commentaire sur cette réclamation.</p>
+          } @else {
+            @for (c of commentaires; track c.id) {
+              <div class="comment-item">
+                <div class="comment-avatar">{{ c.prenom?.charAt(0) || 'U' }}</div>
+                <div class="comment-content">
+                  <div class="comment-meta">
+                    <span class="comment-author">{{ c.prenom }} {{ c.nom }}</span>
+                    <app-status-badge [status]="c.role || 'etudiant'"></app-status-badge>
+                    <span class="comment-date">{{ c.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                  <p class="comment-text">{{ c.commentaire }}</p>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (showDeleteConfirm) {
+    <app-confirmation-dialog 
+      title="Supprimer la réclamation" 
+      message="Êtes-vous certain de vouloir supprimer cette réclamation ?"
+      confirmText="Supprimer"
+      [isDanger]="true"
+      (confirmed)="onDeleteConfirmed()"
+      (cancelled)="showDeleteConfirm = false">
+    </app-confirmation-dialog>
+  }
+}

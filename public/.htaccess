@@ -1,0 +1,31 @@
+Options -Indexes
+DirectoryIndex index.html
+
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+
+  <FilesMatch "^(index\.html)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /campus-lost-and-found/
+
+  # Dossiers sensibles du backend : jamais accessibles directement
+  RewriteRule ^backend/(config|middleware|utils)(/.*)?$ - [F,L,NC]
+
+  # Fichiers et dossiers existants (assets, backend/api, backend/uploads)
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Routes Angular (SPA) -> index.html ; les chemins /backend/ inconnus restent en 404
+  RewriteCond %{REQUEST_URI} !^/campus-lost-and-found/backend/ [NC]
+  RewriteRule ^ index.html [L]
+</IfModule>

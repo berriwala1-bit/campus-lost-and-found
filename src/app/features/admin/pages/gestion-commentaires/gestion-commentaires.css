@@ -1,0 +1,137 @@
+.admin-wrapper {
+  padding-top: 2.5rem;
+  padding-bottom: 5rem;
+}
+
+/* Admin Topbar */
+.admin-topbar {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem 2rem 0;
+  margin-bottom: 2rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-topbar-header {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1.75rem;
+}
+
+.admin-shield {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #1e40af, #3b82f6);
+  color: #ffffff;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
+}
+
+.admin-title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+  color: var(--text-main);
+}
+
+.admin-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.admin-nav-tabs {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  border-top: 1px solid var(--border-light);
+  padding-top: 0.5rem;
+}
+
+.admin-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.admin-tab-btn:hover {
+  color: var(--primary);
+  background: #f8fafc;
+}
+
+.admin-tab-btn.active {
+  color: var(--primary);
+  background: var(--primary-light);
+  border-bottom: 2.5px solid var(--primary);
+}
+
+/* Table */
+.table-card {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.table-header-row {
+  margin-bottom: 1.25rem;
+}
+
+.count-tag {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.type-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+}
+
+.type-pill.obj {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.type-pill.rec {
+  background: #f0fdfa;
+  color: #0f766e;
+}
+
+.comment-body-text {
+  max-width: 420px;
+  font-size: 0.875rem;
+  color: #334155;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.font-sm {
+  font-size: 0.8rem;
+}
+
+.link {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+}

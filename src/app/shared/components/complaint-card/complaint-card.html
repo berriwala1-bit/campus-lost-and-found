@@ -1,0 +1,57 @@
+@if (reclamation) {
+<div class="card complaint-card">
+  <div class="card-header">
+    <div class="badges-row">
+      <span class="category-pill">{{ getCategoryLabel(reclamation.categorie) }}</span>
+      <app-status-badge [status]="reclamation.statut"></app-status-badge>
+    </div>
+    <span class="created-date">{{ reclamation.created_at | date:'dd/MM/yyyy' }}</span>
+  </div>
+
+  <div class="card-body">
+    <h3 class="card-title">
+      <a [routerLink]="['/reclamations', reclamation.id]">{{ reclamation.titre }}</a>
+    </h3>
+
+    <p class="card-description">{{ reclamation.description }}</p>
+
+    @if (reclamation.reponse_officielle) {
+      <div class="official-response-preview">
+        <div class="response-header">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>Réponse de l'administration</span>
+        </div>
+        <p class="response-text">{{ reclamation.reponse_officielle }}</p>
+      </div>
+    }
+  </div>
+
+  <div class="card-footer">
+    <div class="author-info">
+      <div class="author-avatar">{{ reclamation.auteur_prenom?.charAt(0) || 'U' }}</div>
+      <div class="author-meta">
+        <span class="author-name">{{ reclamation.auteur_prenom }} {{ reclamation.auteur_nom }}</span>
+        <span class="author-role">{{ reclamation.auteur_role }}</span>
+      </div>
+    </div>
+
+    <div class="card-actions">
+      <!-- Bouton de soutien unique -->
+      <button 
+        type="button" 
+        class="support-btn" 
+        [class.active]="reclamation.user_a_soutenu"
+        (click)="onSupportClick($event)"
+        [title]="reclamation.user_a_soutenu ? 'Retirer mon soutien' : 'Soutenir cette réclamation'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" [attr.fill]="reclamation.user_a_soutenu ? '#ef4444' : 'none'" [attr.stroke]="reclamation.user_a_soutenu ? '#ef4444' : 'currentColor'" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+        <span class="support-count">{{ reclamation.soutiens_count }}</span>
+      </button>
+
+      <a [routerLink]="['/reclamations', reclamation.id]" class="comments-link">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <span>{{ reclamation.commentaires_count }}</span>
+      </a>
+    </div>
+  </div>
+</div>
+}

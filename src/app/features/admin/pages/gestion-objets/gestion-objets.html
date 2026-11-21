@@ -1,0 +1,189 @@
+<div class="admin-wrapper container">
+  <!-- Barre de navigation d'administration -->
+  <div class="admin-topbar">
+    <div class="admin-topbar-header">
+      <div class="admin-shield">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+      </div>
+      <div>
+        <h1 class="admin-title">Gestion et Modération des Objets</h1>
+        <p class="admin-subtitle">Consultez l'ensemble des annonces, modifiez les statuts et supprimez les contenus inappropriés</p>
+      </div>
+    </div>
+
+    <nav class="admin-nav-tabs">
+      <a routerLink="/admin" class="admin-tab-btn">Vue Générale & Statistiques</a>
+      <a routerLink="/admin/utilisateurs" class="admin-tab-btn">Gestion Utilisateurs</a>
+      <a routerLink="/admin/objets" class="admin-tab-btn active">Gestion des Objets</a>
+      <a routerLink="/admin/reclamations" class="admin-tab-btn">Gestion Réclamations</a>
+      <a routerLink="/admin/commentaires" class="admin-tab-btn">Modération Commentaires</a>
+    </nav>
+  </div>
+
+  <div class="table-header-row"><button class="btn btn-primary" (click)="openCreateModal()">Créer une annonce</button></div>
+  @if (errorMessage) { <div class="alert alert-danger" role="alert">{{ errorMessage }}</div> }
+  @if (successMessage) { <div class="alert alert-success" role="status">{{ successMessage }}</div> }
+  <!-- Filtres -->
+  <div class="filters-card">
+    <div class="filters-grid">
+      <div class="filter-group flex-2">
+        <label class="form-label">Rechercher</label>
+        <div class="input-with-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            (ngModelChange)="applyFilters()" 
+            class="form-control" 
+            placeholder="Titre, lieu, auteur..." />
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label class="form-label">Type</label>
+        <select [(ngModel)]="selectedType" (ngModelChange)="applyFilters()" class="form-select">
+          <option value="all">Tous types</option>
+          <option value="trouve">Objets Trouvés</option>
+          <option value="perdu">Objets Perdus</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="form-label">Statut</label>
+        <select [(ngModel)]="selectedStatut" (ngModelChange)="applyFilters()" class="form-select">
+          <option value="all">Tous statuts</option>
+          <option value="actif">Actif</option>
+          <option value="en_cours">En cours de restitution</option>
+          <option value="recupere">Récupéré</option>
+          <option value="cloture">Clôturé</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="form-label">Catégorie</label>
+        <select [(ngModel)]="selectedCategory" (ngModelChange)="applyFilters()" class="form-select">
+          <option value="all">Toutes les catégories</option>
+          @for (categorie of categories; track categorie.value) {
+            <option [value]="categorie.value">{{ categorie.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau des objets -->
+  <div class="table-card">
+    <div class="table-header-row">
+      <span class="count-tag"><strong>{{ objets.length }}</strong> objet(s) au total</span>
+    </div>
+
+    @if (isLoading) {
+      <app-loading-spinner message="Chargement des objets..."></app-loading-spinner>
+    } @else if (errorMessage) {
+      <div class="empty-state">{{ errorMessage }}</div>
+    } @else if (objets.length === 0) {
+      <div class="empty-state">Aucune annonce ne correspond aux filtres.</div>
+    } @else {
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Aperçu</th>
+              <th>Titre & Lieu</th>
+              <th>Type</th>
+              <th>Catégorie</th>
+              <th>Auteur</th>
+              <th>Statut</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (obj of objets; track obj.id) {
+              <tr>
+                <td>
+                  <div class="table-thumb">
+                    @if (obj.photo) {
+                      <img [src]="getPhotoUrl(obj.photo)" [alt]="obj.titre" />
+                    } @else {
+                      <span class="no-photo-badge">Sans photo</span>
+                    }
+                  </div>
+                </td>
+                <td>
+                  <strong>{{ obj.titre }}</strong>
+                  <div class="font-sm text-muted">📍 {{ obj.lieu }}</div>
+                </td>
+                <td><app-status-badge [status]="obj.type" type="type"></app-status-badge></td>
+                <td><span class="cat-pill-sm">{{ obj.categorie }}</span></td>
+                <td>
+                  <div>{{ obj.auteur_prenom }} {{ obj.auteur_nom }}</div>
+                  <small class="text-muted">{{ obj.auteur_role }}</small>
+                </td>
+                <td>
+                  <select 
+                    [ngModel]="obj.statut" 
+                    (ngModelChange)="updateStatut(obj, $event)" 
+                    class="form-select form-select-sm">
+                    <option value="actif">Actif</option>
+                    <option value="en_cours">En cours</option>
+                    <option value="recupere">Récupéré</option>
+                    <option value="cloture">Clôturé</option>
+                  </select>
+                </td>
+                <td>{{ obj.date_evenement | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <div class="actions-cell">
+                    <button (click)="openEditModal(obj)" class="btn btn-outline btn-sm">Modifier</button>
+                    <a [routerLink]="['/objets', obj.id]" class="btn btn-outline btn-sm">
+                      Détails
+                    </a>
+                    <button (click)="confirmDelete(obj)" class="btn btn-danger btn-sm" title="Supprimer">
+                      Supprimer
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  @if (showEditModal) {
+    <div class="modal-backdrop" (click)="showEditModal = false">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header"><h3>{{ selectedObjet ? 'Modifier l’annonce #' + selectedObjet.id : 'Créer une annonce' }}</h3><button class="close-btn" (click)="showEditModal = false">&times;</button></div>
+        <div class="modal-body">
+          @if (modalError) { <div class="alert alert-danger">{{ modalError }}</div> }
+          <label class="form-label">Titre *</label><input class="form-control" [(ngModel)]="editTitre" maxlength="150" />
+          <label class="form-label">Description *</label><textarea class="form-control" [(ngModel)]="editDescription" rows="4"></textarea>
+          <label class="form-label">Catégorie *</label>
+          <select class="form-select" [(ngModel)]="editCategorie">
+            @for (categorie of categories; track categorie.value) {
+              <option [value]="categorie.value">{{ categorie.label }}</option>
+            }
+          </select>
+          <label class="form-label">Type *</label><select class="form-select" [(ngModel)]="editType"><option value="perdu">Perdu</option><option value="trouve">Trouvé</option></select>
+          <label class="form-label">Lieu *</label><input class="form-control" [(ngModel)]="editLieu" />
+          <label class="form-label">Date de l’événement *</label><input type="date" class="form-control" [(ngModel)]="editDate" />
+          <label class="form-label">Contact *</label><input class="form-control" [(ngModel)]="editContact" />
+          <label class="form-label">Statut *</label><select class="form-select" [(ngModel)]="editStatut"><option value="actif">Actif</option><option value="en_cours">En cours</option><option value="recupere">Récupéré</option><option value="cloture">Clôturé</option></select>
+        </div>
+        <div class="modal-footer"><button class="btn btn-outline btn-sm" (click)="showEditModal = false">Annuler</button><button class="btn btn-primary btn-sm" (click)="saveObjet()" [disabled]="isSaving || !editTitre.trim() || !editDescription.trim() || !editLieu.trim() || !editContact.trim()">{{ isSaving ? 'Enregistrement…' : 'Enregistrer' }}</button></div>
+      </div>
+    </div>
+  }
+
+  @if (showDeleteDialog) {
+    <app-confirmation-dialog
+      title="Modération : Supprimer l'annonce"
+      [message]="'Voulez-vous supprimer définitivement l\'annonce « ' + objetToDelete?.titre + ' » ?'"
+      confirmText="Supprimer"
+      [isDanger]="true"
+      (confirmed)="onDeleteConfirmed()"
+      (cancelled)="showDeleteDialog = false">
+    </app-confirmation-dialog>
+  }
+</div>

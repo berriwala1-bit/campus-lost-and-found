@@ -1,0 +1,193 @@
+<div class="admin-wrapper container">
+  <!-- Barre de navigation d'administration -->
+  <div class="admin-topbar">
+    <div class="admin-topbar-header">
+      <div class="admin-shield">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+      </div>
+      <div>
+        <h1 class="admin-title">Gestion des Réclamations</h1>
+        <p class="admin-subtitle">Examinez les requêtes, apportez des réponses officielles et mettez à jour les statuts</p>
+      </div>
+    </div>
+
+    <nav class="admin-nav-tabs">
+      <a routerLink="/admin" class="admin-tab-btn">Vue Générale & Statistiques</a>
+      <a routerLink="/admin/utilisateurs" class="admin-tab-btn">Gestion Utilisateurs</a>
+      <a routerLink="/admin/objets" class="admin-tab-btn">Gestion des Objets</a>
+      <a routerLink="/admin/reclamations" class="admin-tab-btn active">Gestion Réclamations</a>
+      <a routerLink="/admin/commentaires" class="admin-tab-btn">Modération Commentaires</a>
+    </nav>
+  </div>
+
+  <div class="table-header-row"><button class="btn btn-primary" (click)="openCreateModal()">Créer une réclamation</button></div>
+  @if (errorMessage) { <div class="alert alert-danger" role="alert">{{ errorMessage }}</div> }
+  @if (successMessage) { <div class="alert alert-success" role="status">{{ successMessage }}</div> }
+  <!-- Filtres -->
+  <div class="filters-card">
+    <div class="filters-grid">
+      <div class="filter-group flex-2">
+        <label class="form-label">Rechercher</label>
+        <div class="input-with-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            (ngModelChange)="applyFilters()" 
+            class="form-control" 
+            placeholder="Titre, description, auteur..." />
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label class="form-label">Statut</label>
+        <select [(ngModel)]="selectedStatut" (ngModelChange)="applyFilters()" class="form-select">
+          <option value="all">Tous statuts</option>
+          <option value="en_attente">En attente</option>
+          <option value="en_cours">En cours de traitement</option>
+          <option value="resolue">Résolue</option>
+          <option value="refusee">Refusée</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label class="form-label">Catégorie</label>
+        <select [(ngModel)]="selectedCategorie" (ngModelChange)="applyFilters()" class="form-select">
+          <option value="all">Toutes catégories</option>
+          <option value="pedagogique">Pédagogique</option>
+          <option value="administratif">Administratif</option>
+          <option value="infrastructure">Infrastructure</option>
+          <option value="equipements">Équipements</option>
+          <option value="organisation">Organisation</option>
+          <option value="injustice">Situations Injustes</option>
+          <option value="autre">Autre</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau -->
+  <div class="table-card">
+    <div class="table-header-row">
+      <span class="count-tag"><strong>{{ reclamations.length }}</strong> réclamation(s)</span>
+    </div>
+
+    @if (isLoading) {
+      <app-loading-spinner message="Chargement des réclamations..."></app-loading-spinner>
+    } @else if (errorMessage) {
+      <div class="empty-state">{{ errorMessage }}</div>
+    } @else if (reclamations.length === 0) {
+      <div class="empty-state">Aucune réclamation ne correspond aux filtres.</div>
+    } @else {
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Titre & Description</th>
+              <th>Catégorie</th>
+              <th>Auteur</th>
+              <th>Soutiens</th>
+              <th>Statut</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (rec of reclamations; track rec.id) {
+              <tr>
+                <td>#{{ rec.id }}</td>
+                <td>
+                  <strong>{{ rec.titre }}</strong>
+                  <div class="font-sm text-muted clamp-1">{{ rec.description }}</div>
+                  @if (rec.reponse_officielle) {
+                    <div class="official-pill">✓ Réponse fournie</div>
+                  }
+                </td>
+                <td><span class="cat-pill-sm">{{ rec.categorie }}</span></td>
+                <td>
+                  <div>{{ rec.auteur_prenom }} {{ rec.auteur_nom }}</div>
+                  <small class="text-muted">{{ rec.auteur_role }}</small>
+                </td>
+                <td><strong>❤️ {{ rec.soutiens_count }}</strong></td>
+                <td><app-status-badge [status]="rec.statut"></app-status-badge></td>
+                <td>{{ rec.created_at | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <div class="actions-cell">
+                    <button (click)="openReponseModal(rec)" class="btn btn-secondary btn-sm" title="Répondre officiellement">
+                      Répondre
+                    </button>
+                    <a [routerLink]="['/reclamations', rec.id]" class="btn btn-outline btn-sm">
+                      Détails
+                    </a>
+                    <button (click)="confirmDelete(rec)" class="btn btn-danger btn-sm" title="Supprimer">
+                      Supprimer
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <!-- Modal Réponse Officielle -->
+  @if (showReponseModal) {
+    <div class="modal-backdrop" (click)="closeReponseModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>{{ isCreating ? 'Créer une réclamation' : 'Modifier / répondre à la réclamation' }}</h3>
+          <button (click)="closeReponseModal()" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          @if (modalError) { <div class="alert alert-danger">{{ modalError }}</div> }
+          <p class="modal-meta">
+            <strong>Réclamation #{{ selectedReclamation?.id }} :</strong> {{ selectedReclamation?.titre }}
+          </p>
+
+          <div class="form-group"><label class="form-label">Titre *</label><input class="form-control" [(ngModel)]="editTitre" maxlength="200" /></div>
+          <div class="form-group"><label class="form-label">Catégorie *</label><select class="form-select" [(ngModel)]="editCategorie"><option value="pedagogique">Pédagogique</option><option value="administratif">Administratif</option><option value="infrastructure">Infrastructure</option><option value="equipements">Équipements</option><option value="organisation">Organisation</option><option value="injustice">Situations injustes</option><option value="autre">Autre</option></select></div>
+          <div class="form-group"><label class="form-label">Description *</label><textarea class="form-control" [(ngModel)]="editDescription" rows="4"></textarea></div>
+
+          @if (!isCreating) { <div class="form-group">
+            <label class="form-label">Statut du traitement *</label>
+            <select [(ngModel)]="reponseStatut" class="form-select">
+              <option value="en_cours">En cours de traitement</option>
+              <option value="resolue">Résolue</option>
+              <option value="refusee">Refusée</option>
+              <option value="en_attente">En attente</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Texte de la réponse officielle *</label>
+            <textarea 
+              [(ngModel)]="reponseText" 
+              rows="5" 
+              class="form-control" 
+              placeholder="Rédigez la réponse administrative officielle qui sera visible par l'auteur et la communauté..."></textarea>
+          </div> }
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-sm" (click)="closeReponseModal()">Annuler</button>
+          <button type="button" class="btn btn-primary btn-sm" (click)="saveReponse()" [disabled]="isSavingReponse || !editTitre.trim() || !editDescription.trim() || (!isCreating && !reponseText.trim())">
+            {{ isSavingReponse ? 'Enregistrement...' : isCreating ? 'Créer' : 'Enregistrer la réponse' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showDeleteDialog) {
+    <app-confirmation-dialog
+      title="Supprimer la réclamation"
+      [message]="'Voulez-vous supprimer définitivement la réclamation « ' + recToDelete?.titre + ' » ?'"
+      confirmText="Supprimer"
+      [isDanger]="true"
+      (confirmed)="onDeleteConfirmed()"
+      (cancelled)="showDeleteDialog = false">
+    </app-confirmation-dialog>
+  }
+</div>

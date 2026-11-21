@@ -1,0 +1,7 @@
+{
+  "/campus-lost-and-found/backend": {
+    "target": "http://localhost",
+    "secure": false,
+    "changeOrigin": false
+  }
+}

@@ -1,0 +1,187 @@
+@if (!objet && errorMessage) {
+  <div class="page-container container"><div class="alert alert-danger">{{ errorMessage }}</div></div>
+} @else if (!objet && isLoading) {
+  <app-loading-spinner message="Chargement des détails de l'annonce..."></app-loading-spinner>
+} @else if (!objet) {
+  <div class="page-container container"><div class="alert alert-danger">Annonce introuvable.</div></div>
+}
+
+@if (objet) {
+  <div class="page-container container">
+    <!-- Fil d'ariane & Navigation retour -->
+    <div class="top-nav">
+      <a routerLink="/objets" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        Retour à la liste des objets
+      </a>
+
+      <div class="detail-actions">
+        @if (isOwner || isAdmin) {
+          <div class="admin-actions">
+            @if (objet.statut !== 'recupere') {
+              <button (click)="marquerRecupere()" class="btn btn-secondary btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Marquer comme récupéré
+              </button>
+            }
+            <a [routerLink]="['/objets/modifier', objet.id]" class="btn btn-outline btn-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+              Modifier
+            </a>
+            <button (click)="confirmDelete()" class="btn btn-danger btn-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              Supprimer
+            </button>
+          </div>
+        }
+        <button type="button" class="btn btn-primary btn-sm" (click)="onTogglePartage()" [disabled]="isSubmittingPartage">
+          {{ isSubmittingPartage ? 'Patientez...' : (dejaPartage ? 'Retirer le partage' : 'Partager') }}
+          @if (partagesCount > 0) { ({{ partagesCount }}) }
+        </button>
+      </div>
+    </div>
+
+    <!-- Grille Principale : Image & Informations -->
+    <div class="detail-grid">
+      <!-- Colonne Photo -->
+      <div class="photo-column">
+        <div class="photo-card">
+          @if (objet.photo) {
+            <img [src]="getPhotoUrl(objet.photo)" [alt]="objet.titre" class="main-photo" />
+          } @else {
+            <div class="photo-placeholder">
+              <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              <span>Aucune photo fournie</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Colonne Détails & Fiche Contact -->
+      <div class="info-column">
+        <div class="info-card">
+          <div class="info-badges">
+            <app-status-badge [status]="objet.type" type="type"></app-status-badge>
+            <app-status-badge [status]="objet.statut" type="status"></app-status-badge>
+            <span class="category-badge">{{ getCategorieLabel(objet.categorie) }}</span>
+          </div>
+          @if (partageMessage) {
+            <div class="share-feedback">{{ partageMessage }}</div>
+          }
+
+          <h1 class="item-title">{{ objet.titre }}</h1>
+
+          <div class="info-meta-list">
+            <div class="info-meta-row">
+              <span class="meta-label">Lieu exact :</span>
+              <span class="meta-value"><strong>{{ objet.lieu }}</strong></span>
+            </div>
+            <div class="info-meta-row">
+              <span class="meta-label">{{ objet.type === 'trouve' ? 'Date de découverte :' : 'Date de perte :' }}</span>
+              <span class="meta-value">{{ objet.date_evenement | date:'dd MMMM yyyy' }}</span>
+            </div>
+            <div class="info-meta-row">
+              <span class="meta-label">Date de publication :</span>
+              <span class="meta-value">{{ objet.created_at | date:'dd/MM/yyyy à HH:mm' }}</span>
+            </div>
+          </div>
+
+          <div class="section-divider"></div>
+
+          <div class="description-box">
+            <h3>Description détaillée</h3>
+            <p>{{ objet.description }}</p>
+          </div>
+
+          <div class="section-divider"></div>
+
+          <!-- Auteur et Contact -->
+          <div class="author-contact-card">
+            <div class="author-card-header">
+              <div class="author-avatar-lg">
+                {{ objet.auteur_prenom?.charAt(0) || 'U' }}
+              </div>
+              <div class="author-details">
+                <span class="published-by">Publié par</span>
+                <h4 class="author-fullname">{{ objet.auteur_prenom }} {{ objet.auteur_nom }}</h4>
+                <span class="author-role-tag badge-{{ objet.auteur_role }}">{{ objet.auteur_role }}</span>
+              </div>
+            </div>
+
+            <div class="contact-box">
+              <span class="contact-title">Moyen de contact :</span>
+              <div class="contact-value">{{ objet.contact }}</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Section Commentaires -->
+    <div class="comments-section">
+      <div class="comments-header">
+        <h2>Espace Commentaires ({{ commentaires.length }})</h2>
+        <p>Posez une question ou signalez des informations complémentaires à propos de cette annonce.</p>
+      </div>
+
+      <!-- Formulaire nouveau commentaire -->
+      @if (authService.isLoggedIn()) {
+        <form (ngSubmit)="onPostComment()" class="comment-post-box">
+          <textarea 
+            [(ngModel)]="nouveauCommentaire" 
+            name="nouveauCommentaire" 
+            rows="3" 
+            placeholder="Écrivez votre commentaire ici (ex: Bonjour, je pense que cet objet m'appartient...)" 
+            class="form-control" 
+            required></textarea>
+          <div class="comment-submit-row">
+            <button type="submit" class="btn btn-primary btn-sm" [disabled]="isSubmittingComment || !nouveauCommentaire.trim()">
+              {{ isSubmittingComment ? 'Publication...' : 'Publier le commentaire' }}
+            </button>
+          </div>
+        </form>
+      } @else {
+        <div class="login-prompt">
+          <p>Vous devez être connecté pour participer aux commentaires ou déposer une réclamation.</p>
+          <a routerLink="/connexion" class="btn btn-outline btn-sm">Se connecter</a>
+        </div>
+      }
+
+      <!-- Liste des commentaires -->
+      <div class="comments-list">
+        @if (commentaires.length === 0) {
+          <div class="no-comments">
+            <p>Aucun commentaire pour l'instant. Soyez le premier à commenter !</p>
+          </div>
+        } @else {
+          @for (c of commentaires; track c.id) {
+            <div class="comment-card">
+              <div class="comment-avatar">{{ c.prenom?.charAt(0) || 'U' }}</div>
+              <div class="comment-body">
+                <div class="comment-meta">
+                  <span class="comment-author">{{ c.prenom }} {{ c.nom }}</span>
+                  <app-status-badge [status]="c.role || 'etudiant'"></app-status-badge>
+                  <span class="comment-date">{{ c.created_at | date:'dd/MM/yyyy à HH:mm' }}</span>
+                </div>
+                <div class="comment-text">{{ c.commentaire }}</div>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Suppression Confirmation -->
+  @if (showDeleteConfirm) {
+    <app-confirmation-dialog 
+      title="Supprimer l'annonce" 
+      message="Êtes-vous sûr de vouloir supprimer cette annonce ? Cette action est irréversible."
+      confirmText="Supprimer définitivement"
+      [isDanger]="true"
+      (confirmed)="onDeleteConfirmed()"
+      (cancelled)="showDeleteConfirm = false">
+    </app-confirmation-dialog>
+  }
+}

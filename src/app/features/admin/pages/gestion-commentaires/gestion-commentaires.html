@@ -1,0 +1,97 @@
+<div class="admin-wrapper container">
+  <!-- Barre de navigation d'administration -->
+  <div class="admin-topbar">
+    <div class="admin-topbar-header">
+      <div class="admin-shield">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+      </div>
+      <div>
+        <h1 class="admin-title">Modération des Commentaires</h1>
+        <p class="admin-subtitle">Consultez l'ensemble des discussions publiées sur les objets et réclamations, et supprimez les messages inappropriés</p>
+      </div>
+    </div>
+
+    <nav class="admin-nav-tabs">
+      <a routerLink="/admin" class="admin-tab-btn">Vue Générale & Statistiques</a>
+      <a routerLink="/admin/utilisateurs" class="admin-tab-btn">Gestion Utilisateurs</a>
+      <a routerLink="/admin/objets" class="admin-tab-btn">Gestion des Objets</a>
+      <a routerLink="/admin/reclamations" class="admin-tab-btn">Gestion Réclamations</a>
+      <a routerLink="/admin/commentaires" class="admin-tab-btn active">Modération Commentaires</a>
+    </nav>
+  </div>
+  @if (errorMessage) { <div class="alert alert-danger" role="alert">{{ errorMessage }}</div> }
+
+  <div class="table-card">
+    <div class="table-header-row">
+      <span class="count-tag"><strong>{{ commentaires.length }}</strong> commentaire(s) recensé(s)</span>
+    </div>
+
+    @if (isLoading) {
+      <app-loading-spinner message="Chargement des commentaires..."></app-loading-spinner>
+    } @else if (errorMessage) {
+      <div class="empty-state">{{ errorMessage }}</div>
+    } @else if (commentaires.length === 0) {
+      <div class="empty-state">
+        <p>Aucun commentaire publié pour le moment.</p>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Élément concerné</th>
+              <th>Auteur</th>
+              <th>Commentaire</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of commentaires; track c.type_entite + '-' + c.id) {
+              <tr>
+                <td>
+                  <span class="type-pill" [class.obj]="c.type_entite === 'objet'" [class.rec]="c.type_entite === 'reclamation'">
+                    {{ c.type_entite === 'objet' ? 'Objet' : 'Réclamation' }}
+                  </span>
+                </td>
+                <td>
+                  <strong>{{ c.entite_titre }}</strong>
+                  <div>
+                    <a [routerLink]="c.type_entite === 'objet' ? ['/objets', c.entite_id] : ['/reclamations', c.entite_id]" class="font-sm link">
+                      Voir la publication &rarr;
+                    </a>
+                  </div>
+                </td>
+                <td>
+                  <div><strong>{{ c.prenom }} {{ c.nom }}</strong></div>
+                  <small class="text-muted">{{ c.email }} ({{ c.role }})</small>
+                </td>
+                <td>
+                  <p class="comment-body-text">{{ c.commentaire }}</p>
+                </td>
+                <td>{{ c.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>
+                  <button (click)="confirmDelete(c)" class="btn btn-danger btn-sm" title="Supprimer ce commentaire">
+                    Supprimer
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  @if (showDeleteDialog) {
+    <app-confirmation-dialog
+      title="Modération : Supprimer le commentaire"
+      message="Êtes-vous sûr de vouloir supprimer définitivement ce commentaire ?"
+      confirmText="Supprimer"
+      [isDanger]="true"
+      (confirmed)="onDeleteConfirmed()"
+      (cancelled)="showDeleteDialog = false">
+    </app-confirmation-dialog>
+  }
+</div>

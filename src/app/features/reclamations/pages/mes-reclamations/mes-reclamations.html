@@ -1,0 +1,76 @@
+<div class="page-container container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Mes Réclamations</h1>
+      <p class="page-subtitle">Suivez l'état d'avancement de vos signalements et les réponses officielles</p>
+    </div>
+    <a routerLink="/reclamations/publier" class="btn btn-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      Déposer une réclamation
+    </a>
+  </div>
+
+  @if (isLoading) {
+    <app-loading-spinner message="Chargement de vos réclamations..."></app-loading-spinner>
+  } @else if (errorMessage) {
+    <div class="alert alert-danger">{{ errorMessage }}</div>
+  } @else if (reclamations.length === 0) {
+    <div class="empty-state">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      <h3>Vous n'avez déposé aucune réclamation</h3>
+      <p>Un problème à signaler dans l'établissement ? Déposez une réclamation pour alerter l'administration.</p>
+      <a routerLink="/reclamations/publier" class="btn btn-primary btn-sm">Déposer une réclamation</a>
+    </div>
+  } @else {
+    <div class="reclamations-list">
+      @for (rec of reclamations; track rec.id) {
+        <div class="my-rec-card" [class.resolved]="rec.statut === 'resolue'">
+          <div class="rec-header">
+            <div class="badges-row">
+              <span class="category-pill">{{ getCategoryLabel(rec.categorie) }}</span>
+              <app-status-badge [status]="rec.statut"></app-status-badge>
+            </div>
+            <span class="rec-date">Déposée le {{ rec.created_at | date:'dd/MM/yyyy' }}</span>
+          </div>
+
+          <h3 class="rec-title">
+            <a [routerLink]="['/reclamations', rec.id]">{{ rec.titre }}</a>
+          </h3>
+
+          <p class="rec-desc">{{ rec.description }}</p>
+
+          @if (rec.reponse_officielle) {
+            <div class="official-answer">
+              <strong>Réponse de l'administration :</strong>
+              <p>{{ rec.reponse_officielle }}</p>
+            </div>
+          }
+
+          <div class="rec-footer">
+            <div class="rec-meta">
+              <span>❤️ {{ rec.soutiens_count }} soutien(s)</span>
+              <span>💬 {{ rec.commentaires_count }} commentaire(s)</span>
+            </div>
+
+            <div class="rec-actions">
+              <a [routerLink]="['/reclamations', rec.id]" class="btn btn-outline btn-sm">Consulter</a>
+              <a [routerLink]="['/reclamations/modifier', rec.id]" class="btn btn-outline btn-sm">Modifier</a>
+              <button (click)="confirmDelete(rec.id)" class="btn btn-danger btn-sm">Supprimer</button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (showDeleteDialog) {
+    <app-confirmation-dialog
+      title="Supprimer la réclamation"
+      message="Êtes-vous sûr de vouloir supprimer définitivement cette réclamation ?"
+      confirmText="Supprimer"
+      [isDanger]="true"
+      (confirmed)="onDeleteConfirmed()"
+      (cancelled)="showDeleteDialog = false">
+    </app-confirmation-dialog>
+  }
+</div>
